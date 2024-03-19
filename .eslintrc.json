@@ -1,0 +1,25 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true
+    },
+    "extends": [
+        "standard-with-typescript",
+        "plugin:@stylistic/disable-legacy"
+    ],
+    "parserOptions": {
+        "ecmaVersion": "latest",
+        "sourceType": "module"
+    },
+    "plugins": [
+        "@stylistic",
+        "@stylistic/migrate"
+    ],
+    "rules": {
+        "@typescript-eslint/prefer-readonly": "off",
+        "@typescript-eslint/strict-boolean-expressions": "off",
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@stylistic/indent": ["error", 2],
+        "@stylistic/comma-dangle": ["error", "always-multiline"]
+    }
+}

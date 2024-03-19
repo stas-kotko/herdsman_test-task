@@ -1,73 +1,73 @@
-import GameScene from "../scenes/GameScene";
-import { Animal } from "./Animal";
-import { Herdsman } from "./Herdsman";
-import { Yard } from "./Yard";
+import type GameScene from "../scenes/GameScene";
+import { type Animal } from "./Animal";
+import { type Herdsman } from "./Herdsman";
+import { type Yard } from "./Yard";
 
 export class AnimalSet extends Set {
 
-	constructor(
-		public scene: GameScene,
-		initValues?: Animal[]
-	) {	
-		super()
+  constructor(
+    public scene: GameScene,
+    initValues?: Animal[],
+  ) {	
+    super()
 
-		initValues && this.add(initValues)
-	}
+    initValues && this.add(initValues)
+  }
 
-	add(animals: Animal | Animal[]) {
+  add(animals: Animal | Animal[]) {
 
-		if (!Array.isArray(animals)) {
-			animals = [animals]
-		}
+    if (!Array.isArray(animals)) {
+      animals = [animals]
+    }
 
-		animals.forEach(animal => {
-			this.configureAnimal(animal)
-			super.add(animal)
-		})
+    animals.forEach(animal => {
+      this.configureAnimal(animal)
+      super.add(animal)
+    })
 		
-		return this
-	}
+    return this
+  }
 
-	private configureAnimal(animal: Animal) {
-		animal.playerCollider = this.scene.physics.add.overlap(
-				this.scene.player,
-				animal, 
-				this.animalPlayerCollideHandler as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
-		)
+  private configureAnimal(animal: Animal) {
+    animal.playerCollider = this.scene.physics.add.overlap(
+      this.scene.player,
+      animal, 
+      this.animalPlayerCollideHandler.bind(this) as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+    )
 
-		animal.yardCollider = this.scene.physics.add.overlap(
-				animal, 
-				this.scene.yard, 
-				this.animalYardOverlapHandler as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback
-		)
+    animal.yardCollider = this.scene.physics.add.overlap(
+      animal, 
+      this.scene.yard, 
+      this.animalYardOverlapHandler.bind(this) as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+    )
 
-		animal.yardCollider.active = false
+    animal.yardCollider.active = false
 
-		animal.on('unfollow', () => {
-				this.scene.herdsmanGroup.delete(animal)
-		})
-	}
+    animal.on('unfollow', () => {
+      this.scene.herdsmanGroup.delete(animal)
+    })
+  }
 
-	private animalYardOverlapHandler(animal: Animal, yard: Yard) {
+  private animalYardOverlapHandler(animal: Animal, yard: Yard) {
 
-		animal.yardCollider?.destroy()
+    animal.yardCollider?.destroy()
 
-		yard.adoptAnimal(animal)
+    yard.adoptAnimal(animal)
 		
-		animal.unfollow()
-		animal.moveToPoint(yard.getCenter())
-		animal.startWandering(yard.getBounds())
-	}
+    animal.unfollow()
+    animal.moveToPoint(yard.getCenter())
+    animal.startWandering(yard.getBounds())
+  }
 
-	private animalPlayerCollideHandler(player: Herdsman, animal: Animal) {
-		if (player.canAddFollower()) {
+  private animalPlayerCollideHandler(player: Herdsman, animal: Animal) {
+    if (player.canAddFollower()) {
 
-				player.addFollower(animal)
+      player.addFollower(animal)
 
-				animal.playerCollider?.destroy()
-				animal.yardCollider && (animal.yardCollider.active = true)
+      animal.playerCollider?.destroy()
+      animal.yardCollider && (animal.yardCollider.active = true)
 				
-				animal.follow(player)
-		}
-	}
+      animal.follow(player)
+    }
+  }
 }

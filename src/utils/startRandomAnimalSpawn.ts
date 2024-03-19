@@ -1,29 +1,29 @@
-import { AnimalFactory } from "../components/AnimalFactory";
-import { Spawner } from "../components/Spawner";
+import { type AnimalFactory } from "../components/AnimalFactory";
+import { type Spawner } from "../components/Spawner";
 
 interface RandomSpawnerConfig {
-	timeRange: [number, number]
-	scaleRange?: [number, number]
-	excludeArea?: Phaser.Geom.Rectangle
+  timeRange: [number, number]
+  scaleRange?: [number, number]
+  excludeArea?: Phaser.Geom.Rectangle
 }
 
 export function startRandomAnimalSpawn(
-	factory: AnimalFactory, 
-	spawner: Spawner, 
-	config: RandomSpawnerConfig,
-	callback?: () => any,
+  factory: AnimalFactory, 
+  spawner: Spawner, 
+  config: RandomSpawnerConfig,
+  callback?: () => any,
 ) {
-	const { timeRange, scaleRange, excludeArea } = config;
+  const { timeRange, scaleRange, excludeArea } = config;
 
-	const randomTime = Phaser.Math.RND.between(...timeRange)
-	const randomSize = Phaser.Math.RND.between(...scaleRange || [1, 1])
+  const randomTime = Phaser.Math.RND.between(...timeRange)
+  const randomSize = Phaser.Math.RND.between(...scaleRange ?? [1, 1])
 	
-	return setTimeout(() => {
-			const chick = factory.create({
-					size: randomSize
-			})
-			spawner.spawn(chick, { excludeArea })
-			callback && callback()
-			startRandomAnimalSpawn(factory, spawner, config, callback)
-	}, randomTime)
+  return setTimeout(() => {
+    const chick = factory.create({
+      size: randomSize,
+    })
+    spawner.spawn(chick, { excludeArea })
+    callback?.()
+    startRandomAnimalSpawn(factory, spawner, config, callback)
+  }, randomTime)
 }

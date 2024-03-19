@@ -1,39 +1,37 @@
 export default class StartScene extends Phaser.Scene {
 
-	constructor() {
-		super('Start')
-	}
+  constructor() {
+    super('Start')
+  }
 	
-	preload() {
-		this.load.image('start', 'assets/images/start-btn.png');
-		this.load.image('settings', 'assets/images/settings-btn.png');
-	}
+  preload() {
+    this.load.image('start', 'assets/images/start-btn.png');
+    this.load.image('settings', 'assets/images/settings-btn.png');
+  }
 
-	create() {
-		const { width, height } = this.scale;
-		const cx = width * 0.5;
-		const cy = height * 0.5;
+  create() {
+    const { width, height } = this.scale;
+    const cx = width * 0.5;
+    const cy = height * 0.5;
 
-		const startBtn = this
-			.add.image(cx, cy, 'start')
-			.setInteractive()
-			.once('pointerdown', () => {
-				this.scene.start('Game')
-			})
+    this.add.image(cx, cy, 'start')
+      .setInteractive()
+      .once('pointerdown', () => {
+        this.scene.start('Game')
+      })
 
-		const settingsBtn = this
-			.add.image(cx, cy + 100, 'settings')
-			.setInteractive()
-			.once('pointerdown', () => {
-				this.scene.start('Settings')
-			})
+    this.add.image(cx, cy + 100, 'settings')
+      .setInteractive()
+      .once('pointerdown', () => {
+        this.scene.start('Settings')
+      })
 
-		const title = this.add.text(0,0, 'Herdsman', {
-			fontSize: '84px',
-			align: 'center',
-		})
+    const title = this.add.text(0,0, 'Herdsman', {
+      fontSize: '84px',
+      align: 'center',
+    })
 
-		title.setPosition(cx - title.width / 2, height / 3)
+    title.setPosition(cx - title.width / 2, height / 3)
 
-	}
+  }
 }
