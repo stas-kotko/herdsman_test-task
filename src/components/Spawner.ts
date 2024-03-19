@@ -49,6 +49,5 @@ export class Spawner extends Phaser.Events.EventEmitter {
 
 			this.emit('spawn', object)
 		})
-
 	}
 }

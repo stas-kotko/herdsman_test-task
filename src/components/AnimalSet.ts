@@ -44,7 +44,7 @@ export class AnimalSet extends Set {
 		animal.yardCollider.active = false
 
 		animal.on('unfollow', () => {
-				this.scene.herdsmanGroup.dismiss(animal)
+				this.scene.herdsmanGroup.delete(animal)
 		})
 	}
 
@@ -61,8 +61,9 @@ export class AnimalSet extends Set {
 
 	private animalPlayerCollideHandler(player: Herdsman, animal: Animal) {
 		if (player.canAddFollower()) {
+
 				player.addFollower(animal)
-				
+
 				animal.playerCollider?.destroy()
 				animal.yardCollider && (animal.yardCollider.active = true)
 				

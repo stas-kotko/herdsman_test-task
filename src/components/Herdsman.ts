@@ -1,26 +1,19 @@
 import { Animal } from "./Animal"
-import { Group } from "./Group"
+import { LimitedSet } from "./LimitedSet"
 import { Movable } from "./Movable"
 
 export class Herdsman extends Movable {
 
 	public maxSpeed = 600
-	public maxGroupCapacity
-
-	public followers = new Group<Animal>
-	private defaultMaxGroupCapacity = 5
 
 	constructor(
 		scene: Phaser.Scene,
 		x: number,
 		y: number,
 		texture: string,
-		frame?: string | number,
-		maxGroupCapacity?: number
+		public followers: LimitedSet<Animal>
 	) {
-		super(scene, x, y, texture, frame)
-
-		this.maxGroupCapacity = maxGroupCapacity || this.defaultMaxGroupCapacity
+		super(scene, x, y, texture)
 
 		this.setDepth(10)
 
@@ -41,7 +34,7 @@ export class Herdsman extends Movable {
 		if (this.canAddFollower()) {
 			this.followers.add(follower)
 		} else {
-			throw new Error(`Herdsman: Max group capacity (${this.maxGroupCapacity}) already reached`)
+			throw new Error(`Herdsman: Max group capacity (${this.followers.maxCapacity}) already reached`)
 		}
 	}
 

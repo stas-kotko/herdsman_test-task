@@ -1,12 +1,13 @@
-import { Herdsman } from "../classes/Herdsman"
-import { Animal } from "../classes/Animal"
-import { Yard } from "../classes/Yard"
-import { AnimalFactory } from "../classes/AnimalFactory"
-import { Spawner } from "../classes/Spawner"
-import { Group } from "../classes/Group"
+import { Herdsman } from "../components/Herdsman"
+import { Animal } from "../components/Animal"
+import { Yard } from "../components/Yard"
+import { AnimalFactory } from "../components/AnimalFactory"
+import { Spawner } from "../components/Spawner"
+import { LimitedSet } from "../components/LimitedSet"
 import { GameUi } from "../components/GameUi"
-import { AnimalSet } from "../classes/AnimalSet"
-import { getGameConfigFromLS } from "../utils/getGameConfigFromLs"
+import { AnimalSet } from "../components/AnimalSet"
+import { getGameConfigFromLs } from "../utils/getGameConfigFromLs"
+import { startRandomAnimalSpawn } from "../utils/startRandomAnimalSpawn"
 
 
 const DEFAULT_GAME_CONFIG: GameConfig = {
@@ -21,13 +22,13 @@ const DEFAULT_GAME_CONFIG: GameConfig = {
 export default class GameScene extends Phaser.Scene {
 
     declare player: Herdsman
+    declare animals: AnimalSet
     declare yard: Yard
     declare ui: GameUi
-    declare animals: AnimalSet
+    declare herdsmanGroup: LimitedSet<Animal>
 
     declare GAME_CONFIG: GameConfig
 
-    herdsmanGroup = new Group<Animal>()
 
     constructor() {
         super('Game');
@@ -43,12 +44,11 @@ export default class GameScene extends Phaser.Scene {
 
 		this.GAME_CONFIG = {
 			...DEFAULT_GAME_CONFIG,
-			...getGameConfigFromLS(),
+			...getGameConfigFromLs(),
 		}
     }
 
     create() {
-        const scene = this;
         const { width, height } = this.scale;
         const cx = width * 0.5;
         const cy = height * 0.5;
@@ -63,15 +63,28 @@ export default class GameScene extends Phaser.Scene {
             randomSizeRange: this.GAME_CONFIG.ANIMAL_SCALE_RANGE
         })
 
-        this.player = new Herdsman(this, this.yard.x, this.yard.y, 'dude', 0, this.GAME_CONFIG.MAX_GROUP_CAPACITY)
-        this.player.followers = this.herdsmanGroup;
+        this.herdsmanGroup = new LimitedSet<Animal>(this.GAME_CONFIG.MAX_GROUP_CAPACITY)
 
-        this.animals = new AnimalSet(scene);
+        this.player = new Herdsman(
+            this, 
+            this.yard.x, 
+            this.yard.y, 
+            'dude', 
+            this.herdsmanGroup,
+        )
 
-        this.animals.add(chickenFactory.createMultiple(this.GAME_CONFIG.ANIMAL_NUMBER))
+        this.animals = new AnimalSet(
+            this,
+            chickenFactory.createMultiple(this.GAME_CONFIG.ANIMAL_NUMBER)
+        );
 
         this.animals.forEach(animal => {
-            spawner.spawn(animal, { excludeArea: this.yard.spawnFreeZone.getBounds() } )
+            spawner.spawn(
+                animal, 
+                { excludeArea: this.yard.spawnFreeZone.getBounds() } 
+            )
+
+            animal.startWandering(undefined, this.yard.spawnFreeZone.getBounds())
         })
 
         spawner.on('spawn', (spawned: unknown) => {
@@ -81,25 +94,17 @@ export default class GameScene extends Phaser.Scene {
             }
         })
 
-        this.animals.forEach(animal => {
-            animal.startWandering(undefined, this.yard.spawnFreeZone.getBounds())
-        })
-
         if (this.GAME_CONFIG.ANIMALS_SPAWN_RANDOMLY) {
-            function startRandomChickenSpawn(timeRange: [number, number]) {
-		        const randomTime = Phaser.Math.RND.between(...timeRange)
-                
-                return setTimeout(() => {
-                    const chick = chickenFactory.create({ 
-                        randomSizeRange: scene.GAME_CONFIG.ANIMAL_SCALE_RANGE 
-                    })
-                    spawner.spawn(chick, { excludeArea: scene.yard.spawnFreeZone.getBounds() })
-                    scene.ui.update({animalsTotalNumber: scene.animals.size })
-                    startRandomChickenSpawn(timeRange)
-                }, randomTime)
-            }
-
-            startRandomChickenSpawn(this.GAME_CONFIG.ANIMAL_RANDOM_SPAWN_TIME_RANGE)
+            startRandomAnimalSpawn(
+                chickenFactory,
+                spawner,
+                {
+                    timeRange: this.GAME_CONFIG.ANIMAL_RANDOM_SPAWN_TIME_RANGE,
+                    scaleRange: this.GAME_CONFIG.ANIMAL_SCALE_RANGE,
+                    excludeArea: this.yard.spawnFreeZone.getBounds()
+                },
+                () => this.ui.update({animalsTotalNumber: this.animals.size })
+            )
         }
 
         this.ui = new GameUi(this, { 
@@ -113,7 +118,7 @@ export default class GameScene extends Phaser.Scene {
             groupSize: this.herdsmanGroup.size,
             animalsReturned: this.yard.animals.size,
             animalsTotalNumber: this.animals.size,
-            maxGroupCapacity: this.player.maxGroupCapacity,
+            maxGroupCapacity: this.herdsmanGroup.maxCapacity,
         })
 
         if (this.yard.animals.size === this.animals.size) {

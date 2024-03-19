@@ -1,13 +1,13 @@
 import { Animal } from "./Animal"
 
 export class Yard extends Phaser.GameObjects.TileSprite {
-	animals: Set<Animal> = new Set()
-
+	
 	declare body: Phaser.Physics.Arcade.Body
-
-	spawnFreeZone: Phaser.GameObjects.Rectangle
-
+	
 	private spawnFreeZoneValue = 100
+	
+	public animals: Set<Animal> = new Set()
+	public spawnFreeZone: Phaser.GameObjects.Rectangle
 
 	constructor(scene: Phaser.Scene, x: number, y: number, width: number, height: number, texture: string) {
 		super(scene, x, y, width, height, texture)
